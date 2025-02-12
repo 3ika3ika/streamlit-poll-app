@@ -62,24 +62,21 @@ def main():
     # Fetch all polls
     polls = get_all_polls()
 
-    if polls:
-        st.header("Vote on Polls")
-
+    if polls and isinstance(polls, list) and len(polls) > 0:
         for poll in polls:
-            # Display each poll in a separate window
-            st.subheader(f"Poll: {poll['question']}")
+            st.header(f"Poll: {poll['question']}")
 
-            # Voting options (Only show the radio button choices, no additional text)
-            option = st.radio(f"Choose an option for poll {poll['id']}", [poll['option_1'], poll['option_2']], key=poll['id'])
 
-            if st.button(f"Vote for Poll {poll['id']}"):
+            # Voting buttons
+            option = st.radio("Choose an option", [poll['option_1'], poll['option_2']])
+
+            if st.button(f"Vote on Poll {poll['id']}"):
                 vote_response = submit_vote(poll['id'], 'option_1' if option == poll['option_1'] else 'option_2')
                 st.write(vote_response['message'])
 
             # Show current vote counts
             st.write(f"Votes for {poll['option_1']}: {poll['votes_1']}")
             st.write(f"Votes for {poll['option_2']}: {poll['votes_2']}")
-            st.write("---")  # Separator for each poll
     else:
         st.write("No active polls at the moment.")
 
