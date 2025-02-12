@@ -10,8 +10,8 @@ load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:5000")  # Default to localhost:5000 if not set
 
 
-# Get the current poll from Flask
-def get_poll():
+# Get all polls from Flask
+def get_all_polls():
     response = requests.get(f"{API_URL}/get_poll")
     if response.status_code == 200:
         return response.json()
@@ -42,7 +42,6 @@ def create_poll(question, option_1, option_2):
         return {"message": f"Server returned status code {response.status_code}"}
 
 
-
 # Frontend
 def main():
     st.title("Voting App")
@@ -60,27 +59,29 @@ def main():
         else:
             st.error("Please fill in all fields.")
 
-    # Fetch the current poll
-    poll = get_poll()
+    # Fetch all polls
+    polls = get_all_polls()
 
-    if poll:
-        st.header("Vote on the Latest Poll")
-        st.subheader(poll['question'])
-        st.write(f"1. {poll['option_1']}")
-        st.write(f"2. {poll['option_2']}")
+    if polls:
+        st.header("Vote on Polls")
 
-     # Voting buttons
-        option = st.radio("Choose an option", [poll['option_1'], poll['option_2']])
+        for poll in polls:
+            # Display each poll in a separate window
+            st.subheader(f"Poll: {poll['question']}")
 
-        if st.button("Vote"):
-            vote_response = submit_vote(poll['id'], 'option_1' if option == poll['option_1'] else 'option_2')
-            st.write(vote_response['message'])
+            # Voting options (Only show the radio button choices, no additional text)
+            option = st.radio(f"Choose an option for poll {poll['id']}", [poll['option_1'], poll['option_2']], key=poll['id'])
 
-        # Show current vote counts
-        st.write(f"Votes for {poll['option_1']}: {poll['votes_1']}")
-        st.write(f"Votes for {poll['option_2']}: {poll['votes_2']}")
+            if st.button(f"Vote for Poll {poll['id']}"):
+                vote_response = submit_vote(poll['id'], 'option_1' if option == poll['option_1'] else 'option_2')
+                st.write(vote_response['message'])
+
+            # Show current vote counts
+            st.write(f"Votes for {poll['option_1']}: {poll['votes_1']}")
+            st.write(f"Votes for {poll['option_2']}: {poll['votes_2']}")
+            st.write("---")  # Separator for each poll
     else:
-        st.write("No active poll at the moment.")
+        st.write("No active polls at the moment.")
 
 
 if __name__ == "__main__":
